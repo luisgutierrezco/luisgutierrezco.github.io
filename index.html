@@ -1,1312 +1,1009 @@
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VIP Admin - Gestión de Inventario & Obsequios</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome CDN -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <!-- Google Fonts Inter -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <script>
-      tailwind.config = {
-          theme: {
-              extend: {
-                  colors: {
-                      brand: {
-                          dark: '#0e1726',
-                          sidebar: '#0b1120',
-                          card: '#1e293b',
-                          primary: '#eab308', // VIP Gold
-                          primaryHover: '#ca8a04',
-                          accent: '#3b82f6',
-                          success: '#10b981',
-                          danger: '#ef4444'
-                      }
-                  },
-                  fontFamily: {
-                      sans: ['Inter', 'sans-serif']
-                  }
-              }
-          }
+import React, { useState, useEffect, useMemo } from "react";
+
+// --- ICONOS INLINE SVG ---
+const CrownIcon = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
+  </svg>
+);
+
+const SparklesIcon = () => (
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+  </svg>
+);
+
+const ShieldCheckIcon = () => (
+  <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+  </svg>
+);
+
+const WhatsappIcon = () => (
+  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+  </svg>
+);
+
+const ChevronLeftIcon = () => (
+  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+  </svg>
+);
+
+const ChevronRightIcon = () => (
+  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+  </svg>
+);
+
+const GridIcon = () => (
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+  </svg>
+);
+
+const LayersIcon = () => (
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+  </svg>
+);
+
+const SearchIcon = () => (
+  <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  </svg>
+);
+
+const ShoppingBagIcon = () => (
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+  </svg>
+);
+
+// --- DATOS DEL CATÁLOGO VIP ---
+const PRODUCTS_DATA = [
+  {
+    id: "iphone-15-pro-max",
+    title: "iPhone 15 Pro Max",
+    subtitle: "Titán Natural 256GB • Chip A17 Pro",
+    price: "$1,199.00",
+    oldPrice: "$1,350.00",
+    badge: "MÁS VENDIDO",
+    tag: "GARANTÍA VIP 1 AÑO",
+    category: "Smartphones",
+    image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop",
+    features: [
+      "Estructura de Titán Aeroespacial Ultra Ligero",
+      "Cámara Principal de 48 MP con Zoom Óptico 5x",
+      "Botón de Acción Configurable con Atajos",
+      "Pantalla Super Retina XDR ProMotion 120Hz"
+    ]
+  },
+  {
+    id: "samsung-s24-ultra",
+    title: "Samsung S24 Ultra",
+    subtitle: "Titanium Gray 512GB • Galaxy AI",
+    price: "$1,099.00",
+    oldPrice: "$1,280.00",
+    badge: "TOP IA",
+    tag: "INCLUYE SPEN",
+    category: "Smartphones",
+    image: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=800&auto=format&fit=crop",
+    features: [
+      "Funciones de IA Integradas Galaxy AI",
+      "S Pen Integrado con Gestos en el Aire",
+      "Sensor de Cámara de 200 Megapíxeles",
+      "Procesador Snapdragon 8 Gen 3 for Galaxy"
+    ]
+  },
+  {
+    id: "airpods-pro-2",
+    title: "AirPods Pro 2a Gen",
+    subtitle: "Cancelación Activa con USB-C",
+    price: "$219.00",
+    oldPrice: "$260.00",
+    badge: "OFERTA",
+    tag: "AUDIO ALTA RESOLUCIÓN",
+    category: "Audio",
+    image: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?q=80&w=800&auto=format&fit=crop",
+    features: [
+      "Cancelación Activa de Ruido 2x más Potente",
+      "Modo Ambiente Adaptativo e Inteligente",
+      "Audio Espacial Personalizado con Rastreo Dinámico",
+      "Estuche MagSafe con Parlante y Búsqueda de Precisión"
+    ]
+  },
+  {
+    id: "magsafe-charger-pack",
+    title: "Combo Carga Rápida MagSafe",
+    subtitle: "Cargador Inalámbrico + Adaptador 30W USB-C",
+    price: "$45.00",
+    oldPrice: "$65.00",
+    badge: "COMBO VIP",
+    tag: "CARGA MAGNÉTICA 15W",
+    category: "Accesorios",
+    image: "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?q=80&w=800&auto=format&fit=crop",
+    features: [
+      "Alineación Magnética Automática Perfecta",
+      "Adaptador Rápido GaN de 30W Ultracompacto",
+      "Protección Contra Sobrecalentamiento y Sobrecarga"
+    ]
+  },
+  {
+    id: "apple-watch-ultra-2",
+    title: "Apple Watch Ultra 2",
+    subtitle: "Caja de Titán 49mm • Correa Alpine Loop",
+    price: "$749.00",
+    oldPrice: "$820.00",
+    badge: "NUEVO",
+    tag: "SUMERGIBLE 100M",
+    category: "Wearables",
+    image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=800&auto=format&fit=crop",
+    features: [
+      "Pantalla Retina de 3000 nits de Brillo Máximo",
+      "GPS de Doble Frecuencia de Alta Precisión",
+      "Hasta 72 Horas de Batería en Modo Ahorro",
+      "Gesto Doble Toque para Controlar Sin Tocar Pantalla"
+    ]
+  },
+  {
+    id: "ipad-pro-m4",
+    title: "iPad Pro 13\" M4",
+    subtitle: "Pantalla OLED Ultra Retina XDR • 256GB",
+    price: "$1,299.00",
+    oldPrice: "$1,399.00",
+    badge: "PRO PERFORMANCE",
+    tag: "CHIP M4 ULTRA FINO",
+    category: "Tablets",
+    image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?q=80&w=800&auto=format&fit=crop",
+    features: [
+      "Diseño Increíblemente Delgado de 5.1 mm",
+      "Pantalla OLED Tándem Ultra Retina XDR",
+      "Potente Chip Apple M4 de Última Generación",
+      "Soporte para Apple Pencil Pro con Sensor Háptico"
+    ]
+  },
+  {
+    id: "macbook-pro-16",
+    title: "MacBook Pro 16\" M3 Max",
+    subtitle: "36GB RAM • 1TB SSD • Negro Espacial",
+    price: "$3,299.00",
+    oldPrice: "$3,499.00",
+    badge: "EDICIÓN POWER",
+    tag: "CPU 14 NÚCLEOS",
+    category: "Laptops",
+    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop",
+    features: [
+      "Chip M3 Max para Flujos de Trabajo Extremos",
+      "Hasta 22 Horas de Batería Continuas",
+      "Pantalla Liquid Retina XDR con 1600 nits",
+      "Sistema de Sonido de 6 Parlantes Hi-Fi"
+    ]
+  },
+  {
+    id: "playstation-5-slim",
+    title: "PlayStation 5 Slim VIP",
+    subtitle: "1TB SSD • Incluye 2 Mandos DualSense",
+    price: "$599.00",
+    oldPrice: "$680.00",
+    badge: "GAMING VIP",
+    tag: "INCLUYE 2 JUEGOS",
+    category: "Gaming",
+    image: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?q=80&w=800&auto=format&fit=crop",
+    features: [
+      "Chasis Ultra Delgado con 1TB SSD Ultra Rápido",
+      "Gatillos Adaptativos y Respuesta Háptica",
+      "Gráficos Ultra HD 4K HDR a 120 FPS",
+      "Audio 3D Tempest para Máxima Inmersión"
+    ]
+  },
+  {
+    id: "asus-rog-phone-8",
+    title: "ASUS ROG Phone 8 Pro",
+    subtitle: "512GB • 16GB RAM • Snapdragon 8 Gen 3",
+    price: "$1,149.00",
+    oldPrice: "$1,250.00",
+    badge: "GAMING TOP",
+    tag: "PANTALLA 165HZ",
+    category: "Smartphones",
+    image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?q=80&w=800&auto=format&fit=crop",
+    features: [
+      "Pantalla AMOLED Samsung de 165Hz Ultra Fluida",
+      "Gatillos Ultrasónicos AirTrigger Programables",
+      "Sistema de Enfriamiento GameCool 8 con Cámara de Vapor",
+      "Pantalla AniMe Vision Trasera de Mini-LEDs"
+    ]
+  }
+];
+
+const CATEGORIES = ["Todos", "Smartphones", "Audio", "Wearables", "Tablets", "Laptops", "Gaming", "Accesorios"];
+
+const COLOR_THEMES = [
+  { id: "gold", label: "Oro 24K VIP", hex: "#D4AF37" },
+  { id: "champagne", label: "Blanco Champagne", hex: "#F5E5C9" },
+  { id: "bronze", label: "Marrón Oro Base", hex: "#785216" },
+  { id: "emerald", label: "Verde Esmeralda", hex: "#10b981" }
+];
+
+// Helper para generar gradientes conic refinados y de bajo contraste para un look 100% de lujo
+const getGlowGradient = (themeId) => {
+  switch (themeId) {
+    case "gold":
+      return "conic-gradient(from 0deg at 50% 50%, #452a03 0deg, #b45309 60deg, #fbbf24 120deg, #fef3c7 180deg, #fbbf24 240deg, #b45309 300deg, #452a03 360deg)";
+    case "champagne":
+      return "conic-gradient(from 0deg at 50% 50%, #451a03 0deg, #d97706 60deg, #fde68a 120deg, #ffffff 180deg, #fde68a 240deg, #d97706 300deg, #451a03 360deg)";
+    case "bronze":
+      return "conic-gradient(from 0deg at 50% 50%, #290f02 0deg, #78350f 60deg, #d97706 120deg, #fcd34d 180deg, #d97706 240deg, #78350f 300deg, #290f02 360deg)";
+    case "emerald":
+      return "conic-gradient(from 0deg at 50% 50%, #022c22 0deg, #047857 60deg, #34d399 120deg, #a7f3d0 180deg, #34d399 240deg, #047857 300deg, #022c22 360deg)";
+    default:
+      return "conic-gradient(from 0deg at 50% 50%, #452a03 0deg, #fbbf24 120deg, #fef3c7 180deg, #fbbf24 240deg, #452a03 360deg)";
+  }
+};
+
+export default function App() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [theme, setTheme] = useState(COLOR_THEMES[0]);
+  const [viewMode, setViewMode] = useState("coverflow"); // 'coverflow' | 'stacked' | 'grid'
+  const [cart, setCart] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [autoRotate, setAutoRotate] = useState(true);
+  const [showCartDrawer, setShowCartDrawer] = useState(false);
+
+  // Filtrado de productos según búsqueda y categoría
+  const filteredProducts = useMemo(() => {
+    return PRODUCTS_DATA.filter((item) => {
+      const matchCategory = selectedCategory === "Todos" || item.category === selectedCategory;
+      const matchSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          item.subtitle.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchCategory && matchSearch;
+    });
+  }, [selectedCategory, searchQuery]);
+
+  // Mantener activeIndex dentro de rango cuando cambia la lista
+  useEffect(() => {
+    if (activeIndex >= filteredProducts.length) {
+      setActiveIndex(0);
+    }
+  }, [filteredProducts.length, activeIndex]);
+
+  // Rotación automática interactiva
+  useEffect(() => {
+    if (!autoRotate || filteredProducts.length === 0) return;
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % filteredProducts.length);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [autoRotate, filteredProducts.length]);
+
+  const handlePrev = () => {
+    if (filteredProducts.length === 0) return;
+    setActiveIndex((prev) => (prev - 1 + filteredProducts.length) % filteredProducts.length);
+  };
+
+  const handleNext = () => {
+    if (filteredProducts.length === 0) return;
+    setActiveIndex((prev) => (prev + 1) % filteredProducts.length);
+  };
+
+  const addToCart = (product) => {
+    if (!cart.some((item) => item.id === product.id)) {
+      setCart([...cart, product]);
+    }
+  };
+
+  const removeFromCart = (id) => {
+    setCart(cart.filter((item) => item.id !== id));
+  };
+
+  // CÁLCULO MATE/3D DE POSICIONES PARA EL COVERFLOW
+  const calculateCardStyle = (index) => {
+    const total = filteredProducts.length;
+    if (total === 0) return {};
+
+    let offset = index - activeIndex;
+
+    // Efecto circular para no interrumpir el flujo
+    if (offset > total / 2) offset -= total;
+    if (offset < -total / 2) offset += total;
+
+    const isActive = offset === 0;
+
+    if (viewMode === "coverflow") {
+      if (isActive) {
+        return {
+          transform: "translateX(0px) translateZ(180px) scale(1.02) rotateY(0deg)",
+          opacity: 1,
+          zIndex: 50,
+          filter: "brightness(1.02)"
+        };
       }
-    </script>
-    <style>
-      /* Custom scrollbars */
-      ::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
+      if (Math.abs(offset) === 1) {
+        const sign = Math.sign(offset);
+        return {
+          transform: `translateX(${sign * 185}px) translateZ(60px) scale(0.89) rotateY(${-sign * 24}deg)`,
+          opacity: 0.9,
+          zIndex: 40,
+          filter: "brightness(0.88)"
+        };
       }
-      ::-webkit-scrollbar-track {
-          background: #f1f5f9;
+      if (Math.abs(offset) === 2) {
+        const sign = Math.sign(offset);
+        return {
+          transform: `translateX(${sign * 325}px) translateZ(-80px) scale(0.72) rotateY(${-sign * 45}deg)`,
+          opacity: 0.80,
+          zIndex: 30,
+          filter: "brightness(0.75)"
+        };
       }
-      ::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 4px;
+      if (Math.abs(offset) === 3) {
+        const sign = Math.sign(offset);
+        return {
+          transform: `translateX(${sign * 445}px) translateZ(-200px) scale(0.58) rotateY(${-sign * 58}deg)`,
+          opacity: 0.60,
+          zIndex: 20,
+          filter: "brightness(0.55)"
+        };
       }
-      .tree-line::before {
-          content: '';
-          position: absolute;
-          top: -12px;
-          bottom: 12px;
-          left: 19px;
-          width: 2px;
-          background-color: #334155;
+      return {
+        transform: `translateX(${offset * 260}px) translateZ(-350px) scale(0.3)`,
+        opacity: 0,
+        zIndex: 5,
+        pointerEvents: "none"
+      };
+    } else {
+      if (isActive) {
+        return {
+          transform: "translateY(-12px) translateZ(100px) scale(1.05) rotate(0deg)",
+          opacity: 1,
+          zIndex: 50,
+          filter: "brightness(1.05)"
+        };
       }
-    </style>
-  </head>
-  <body
-    class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen flex flex-col"
-  >
-    <div class="flex h-screen overflow-hidden">
-      <!-- SIDEBAR -->
-      <aside
-        class="w-64 bg-brand-sidebar text-slate-300 flex flex-col shrink-0 shadow-xl z-20 transition-all duration-300"
-      >
-        <!-- Logo Header -->
-        <div
-          class="p-4 border-b border-slate-800 flex items-center justify-between"
-        >
-          <div class="flex items-center space-x-2">
-            <div
-              class="w-8 h-8 rounded bg-gradient-to-tr from-yellow-500 to-amber-300 flex items-center justify-center text-slate-900 font-extrabold text-lg shadow-md"
-            >
-              <i class="fa-solid fa-crown"></i>
-            </div>
-            <div>
-              <span class="font-bold text-white tracking-wide text-lg"
-                >VIP <span class="text-amber-400">Admin</span></span
-              >
-              <span class="block text-[10px] text-slate-400 font-medium -mt-1"
-                >PANEL DE CONTROL</span
-              >
-            </div>
-          </div>
-          <span
-            class="bg-amber-500/20 text-amber-400 text-xs px-2 py-0.5 rounded font-mono"
-            >v2.5</span
+      if (Math.abs(offset) === 1) {
+        const sign = Math.sign(offset);
+        return {
+          transform: `translateX(${sign * 115}px) translateY(18px) rotate(${sign * 6}deg) scale(0.92)`,
+          opacity: 0.88,
+          zIndex: 40,
+          filter: "brightness(0.8)"
+        };
+      }
+      if (Math.abs(offset) === 2) {
+        const sign = Math.sign(offset);
+        return {
+          transform: `translateX(${sign * 215}px) translateY(32px) rotate(${sign * 12}deg) scale(0.82)`,
+          opacity: 0.70,
+          zIndex: 30,
+          filter: "brightness(0.6)"
+        };
+      }
+      if (Math.abs(offset) === 3) {
+        const sign = Math.sign(offset);
+        return {
+          transform: `translateX(${sign * 310}px) translateY(48px) rotate(${sign * 18}deg) scale(0.72)`,
+          opacity: 0.50,
+          zIndex: 20,
+          filter: "brightness(0.45)"
+        };
+      }
+      return {
+        transform: "translateY(90px) scale(0.5)",
+        opacity: 0,
+        zIndex: 10,
+        pointerEvents: "none"
+      };
+    }
+  };
+
+  const handleWhatsAppCheckout = () => {
+    if (cart.length === 0) return;
+    const itemsList = cart.map((c) => `• ${c.title} (${c.price})`).join("\n");
+    const message = encodeURIComponent(`Hola VIP Phone & Tech Studio, me gustaría cotizar el siguiente pedido:\n\n${itemsList}\n\nQuedo atento a la disponibilidad y métodos de pago.`);
+    window.open(`https://wa.me/?text=${message}`, "_blank");
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col justify-between selection:bg-amber-500 selection:text-black relative overflow-x-hidden">
+      
+      {/* Estilos para rotación suave y relajada del borde Aceternity */}
+      <style>{`
+        @keyframes aceternitySpin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .animate-aceternity {
+          animation: aceternitySpin 10s linear infinite;
+        }
+      `}</style>
+
+      {/* Resplandor ambiental atenuado de fondo */}
+      <div 
+        className="fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[350px] rounded-full blur-[140px] opacity-20 transition-all duration-700 pointer-events-none -z-10"
+        style={{ backgroundColor: theme.hex }}
+      />
+
+      {/* HEADER / BARRA SUPERIOR */}
+      <header className="w-full border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-md sticky top-0 z-50 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div 
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-950 font-black text-lg shadow-lg transition-colors duration-300"
+            style={{ backgroundColor: theme.hex }}
           >
+            <CrownIcon />
+          </div>
+          <div>
+            <h1 className="font-extrabold text-base sm:text-lg tracking-tight text-white flex items-center gap-2">
+              VIP PHONE & TECH
+              <span className="text-[10px] px-2 py-0.5 rounded-full border border-slate-700 bg-slate-900 text-slate-300 font-mono">
+                STUDIO 3D
+              </span>
+            </h1>
+            <p className="text-xs text-slate-400 hidden sm:block">Efecto BackgroundGradient interactivo y expansivo en Hover</p>
+          </div>
         </div>
 
-        <!-- Navigation Links -->
-        <nav class="flex-1 overflow-y-auto p-3 space-y-1 text-sm">
-          <!-- General Section -->
-          <div
-            class="px-3 py-2 text-[11px] font-semibold text-slate-500 uppercase tracking-wider"
-          >
-            Menú Principal
+        {/* Buscador Rápido */}
+        <div className="hidden md:flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 w-64 focus-within:border-slate-600 transition">
+          <SearchIcon />
+          <input
+            type="text"
+            placeholder="Buscar iPhone, PS5, M3..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-transparent text-xs text-slate-200 outline-none w-full placeholder-slate-500"
+          />
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl text-xs text-slate-300">
+            <ShieldCheckIcon />
+            <span>Garantía Oficial VIP</span>
           </div>
 
-          <a
-            href="#"
-            class="flex items-center px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+          <button
+            onClick={() => setShowCartDrawer(true)}
+            className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-950 flex items-center gap-2 shadow-md transition hover:brightness-110 active:scale-95 relative"
+            style={{ backgroundColor: theme.hex }}
           >
-            <i class="fa-solid fa-chart-pie w-6 text-center text-slate-400"></i>
-            <span class="ml-2">Inicio</span>
-          </a>
-
-          <!-- INVENTARIO TREE SECTION (EXPANDED BY DEFAULT) -->
-          <div class="pt-2">
-            <div
-              class="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-800/80 text-amber-400 font-medium border-l-4 border-amber-400"
-            >
-              <div class="flex items-center">
-                <i
-                  class="fa-solid fa-boxes-stacked w-6 text-center text-amber-400"
-                ></i>
-                <span class="ml-2 font-semibold">Inventario</span>
-              </div>
-              <span
-                class="text-xs bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded-full font-mono"
-                >6</span
-              >
-            </div>
-
-            <!-- Tree Sub-items -->
-            <div class="relative pl-6 pt-1 space-y-1 tree-line">
-              <!-- Productos -->
-              <button
-                onclick="switchTab('productos')"
-                id="nav-productos"
-                class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors group"
-              >
-                <div class="flex items-center">
-                  <i
-                    class="fa-solid fa-box text-xs w-5 text-slate-400 group-hover:text-amber-400"
-                  ></i>
-                  <span>Productos</span>
-                </div>
-                <span
-                  class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-mono"
-                  >2,760</span
-                >
-              </button>
-
-              <!-- Categorías -->
-              <button
-                onclick="switchTab('categorias')"
-                id="nav-categorias"
-                class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors group"
-              >
-                <div class="flex items-center">
-                  <i
-                    class="fa-solid fa-tags text-xs w-5 text-slate-400 group-hover:text-amber-400"
-                  ></i>
-                  <span>Categorías</span>
-                </div>
-              </button>
-
-              <!-- Marcas -->
-              <button
-                onclick="switchTab('marcas')"
-                id="nav-marcas"
-                class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors group"
-              >
-                <div class="flex items-center">
-                  <i
-                    class="fa-solid fa-copyright text-xs w-5 text-slate-400 group-hover:text-amber-400"
-                  ></i>
-                  <span>Marcas</span>
-                </div>
-              </button>
-
-              <!-- Combos y Obsequios (HIGHLIGHTED REQUERIMENT) -->
-              <button
-                onclick="switchTab('obsequios')"
-                id="nav-obsequios"
-                class="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-colors group font-medium"
-              >
-                <div class="flex items-center">
-                  <i class="fa-solid fa-gift text-xs w-5 text-amber-400"></i>
-                  <span>Combos y Obsequios</span>
-                </div>
-                <span class="flex h-2 w-2 relative">
-                  <span
-                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"
-                  ></span>
-                  <span
-                    class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"
-                  ></span>
-                </span>
-              </button>
-
-              <!-- Especificaciones -->
-              <button
-                onclick="switchTab('especificaciones')"
-                id="nav-especificaciones"
-                class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors group"
-              >
-                <div class="flex items-center">
-                  <i
-                    class="fa-solid fa-sliders text-xs w-5 text-slate-400 group-hover:text-amber-400"
-                  ></i>
-                  <span>Especificaciones</span>
-                </div>
-              </button>
-
-              <!-- Carga Masiva -->
-              <button
-                onclick="switchTab('cargamasiva')"
-                id="nav-cargamasiva"
-                class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors group"
-              >
-                <div class="flex items-center">
-                  <i
-                    class="fa-solid fa-cloud-arrow-up text-xs w-5 text-slate-400 group-hover:text-amber-400"
-                  ></i>
-                  <span>Carga Masiva</span>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <!-- Other Sections -->
-          <div
-            class="pt-4 px-3 py-2 text-[11px] font-semibold text-slate-500 uppercase tracking-wider"
-          >
-            Módulos Ventas
-          </div>
-
-          <a
-            href="#"
-            class="flex items-center px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <i class="fa-solid fa-receipt w-6 text-center text-slate-400"></i>
-            <span class="ml-2">Pedidos</span>
-          </a>
-          <a
-            href="#"
-            class="flex items-center px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <i
-              class="fa-solid fa-cash-register w-6 text-center text-slate-400"
-            ></i>
-            <span class="ml-2">Cierre de Caja</span>
-          </a>
-          <a
-            href="#"
-            class="flex items-center px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <i class="fa-solid fa-bullhorn w-6 text-center text-slate-400"></i>
-            <span class="ml-2">Marketing</span>
-          </a>
-          <a
-            href="#"
-            class="flex items-center px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <i class="fa-solid fa-users w-6 text-center text-slate-400"></i>
-            <span class="ml-2">Usuarios</span>
-          </a>
-          <a
-            href="#"
-            class="flex items-center px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
-          >
-            <i class="fa-solid fa-gear w-6 text-center text-slate-400"></i>
-            <span class="ml-2">Configuraciones</span>
-          </a>
-        </nav>
-
-        <!-- User Profile Footer -->
-        <div
-          class="p-3 border-t border-slate-800 flex items-center justify-between"
-        >
-          <div class="flex items-center space-x-3">
-            <div
-              class="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center font-bold text-amber-400 border border-slate-600"
-            >
-              VA
-            </div>
-            <div>
-              <div class="text-xs font-semibold text-white">
-                VIP Admin Master
-              </div>
-              <div class="text-[10px] text-emerald-400 flex items-center">
-                <span
-                  class="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1"
-                ></span>
-                En línea
-              </div>
-            </div>
-          </div>
-          <button class="text-slate-400 hover:text-white">
-            <i class="fa-solid fa-right-from-bracket"></i>
+            <ShoppingBagIcon />
+            <span>Cotizar ({cart.length})</span>
+            {cart.length > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-bold animate-bounce">
+                {cart.length}
+              </span>
+            )}
           </button>
         </div>
-      </aside>
+      </header>
 
-      <!-- MAIN CONTENT AREA -->
-      <main class="flex-1 flex flex-col min-w-0 bg-slate-100 overflow-y-auto">
-        <!-- Top Header Navbar -->
-        <header
-          class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10 shadow-sm"
-        >
-          <!-- Breadcrumb & Title -->
-          <div class="flex items-center space-x-3">
-            <div class="text-slate-400 flex items-center text-sm">
-              <i class="fa-solid fa-boxes-stacked mr-2 text-slate-500"></i>
-              <span>Inventario</span>
-              <i
-                class="fa-solid fa-chevron-right text-[10px] mx-2 text-slate-300"
-              ></i>
-              <span class="font-semibold text-slate-800" id="current-breadcrumb"
-                >Combos y Obsequios</span
+      {/* FILTROS POR CATEGORÍA */}
+      <div className="w-full border-b border-slate-800/60 bg-slate-950/60 px-4 py-2.5 overflow-x-auto">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs">
+          <span className="text-slate-400 font-bold mr-1 flex items-center gap-1">
+            Categorías:
+          </span>
+          {CATEGORIES.map((cat) => {
+            const isSelected = selectedCategory === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setActiveIndex(0);
+                }}
+                className={`px-3 py-1 rounded-lg font-medium transition whitespace-nowrap ${
+                  isSelected
+                    ? "text-slate-950 font-bold"
+                    : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                }`}
+                style={{
+                  backgroundColor: isSelected ? theme.hex : undefined
+                }}
               >
-            </div>
-          </div>
+                {cat}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-          <!-- Right Quick Stats / Actions -->
-          <div class="flex items-center space-x-4">
-            <div class="relative">
-              <i
-                class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-sm"
-              ></i>
-              <input
-                type="text"
-                placeholder="Buscar en el inventario..."
-                class="pl-9 pr-4 py-1.5 bg-slate-100 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-400 w-64"
+      {/* ÁREA PRINCIPAL DE PRESENTACIÓN */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6 flex flex-col items-center justify-center">
+        
+        <div className="text-center mb-6 space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs text-slate-300">
+            <SparklesIcon />
+            {filteredProducts.length} productos disponibles • Elegante resplandor sutil
+          </div>
+          <h2 className="text-2xl sm:text-4xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 uppercase">
+            Catálogo Exclusivo VIP
+          </h2>
+        </div>
+
+        {filteredProducts.length === 0 ? (
+          <div className="p-12 text-center text-slate-400 space-y-3 bg-slate-900/40 rounded-3xl border border-slate-800 max-w-md my-8">
+            <p className="text-sm">No se encontraron productos coincidentes con tu búsqueda.</p>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedCategory("Todos");
+              }}
+              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-950"
+              style={{ backgroundColor: theme.hex }}
+            >
+              Restablecer Filtros
+            </button>
+          </div>
+        ) : viewMode === "grid" ? (
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl my-4">
+            {filteredProducts.map((item, idx) => (
+              <ProductCard
+                key={item.id}
+                item={item}
+                isActive={idx === activeIndex}
+                theme={theme}
+                onSelect={() => {
+                  setActiveIndex(idx);
+                  setSelectedProduct(item);
+                }}
+                onAddToCart={() => addToCart(item)}
               />
+            ))}
+          </div>
+        ) : (
+          <div className="relative w-full max-w-6xl h-[470px] sm:h-[540px] flex items-center justify-center perspective-[1400px] overflow-hidden rounded-3xl border border-slate-800/80 bg-slate-950/60 backdrop-blur-sm p-4 my-2">
+            
+            {/* Sombras suaves laterales */}
+            <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-36 bg-gradient-to-r from-slate-950 via-slate-950/85 to-transparent pointer-events-none z-40 rounded-l-3xl" />
+            <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-36 bg-gradient-to-l from-slate-950 via-slate-950/85 to-transparent pointer-events-none z-40 rounded-r-3xl" />
+
+            <div className="relative w-full max-w-[980px] h-[410px] flex items-center justify-center">
+              {filteredProducts.map((item, idx) => {
+                const cardStyle = calculateCardStyle(idx);
+                const isActive = idx === activeIndex;
+
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      setActiveIndex(idx);
+                      if (isActive) setSelectedProduct(item);
+                    }}
+                    style={{
+                      ...cardStyle,
+                      transition: "all 0.5s cubic-bezier(0.25, 1, 0.5, 1)"
+                    }}
+                    className="absolute cursor-pointer select-none w-[230px] sm:w-[275px] h-[375px] sm:h-[415px]"
+                  >
+                    <ProductCard
+                      item={item}
+                      isActive={isActive}
+                      theme={theme}
+                      onAddToCart={() => addToCart(item)}
+                    />
+                  </div>
+                );
+              })}
             </div>
+
+            {/* BOTONES DE NAVEGACIÓN LATERAL */}
             <button
-              class="bg-slate-100 p-2 rounded-lg text-slate-600 hover:bg-slate-200 relative"
+              onClick={handlePrev}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-50 w-11 h-11 rounded-full bg-slate-900/90 border border-slate-700 text-white flex items-center justify-center backdrop-blur-md hover:bg-slate-800 transition active:scale-95 shadow-xl"
             >
-              <i class="fa-regular fa-bell"></i>
-              <span
-                class="absolute top-1 right-1 w-2 h-2 bg-amber-500 rounded-full"
-              ></span>
+              <ChevronLeftIcon />
             </button>
             <button
-              class="bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-slate-800 transition-all flex items-center"
+              onClick={handleNext}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-50 w-11 h-11 rounded-full bg-slate-900/90 border border-slate-700 text-white flex items-center justify-center backdrop-blur-md hover:bg-slate-800 transition active:scale-95 shadow-xl"
             >
-              <i class="fa-solid fa-store mr-1.5 text-amber-400"></i> Ir a la
-              tienda
+              <ChevronRightIcon />
             </button>
           </div>
-        </header>
+        )}
 
-        <!-- Dynamic Content Body -->
-        <div class="p-6 max-w-7xl w-full mx-auto space-y-6">
-          <!-- Dynamic Section Banner -->
-          <div
-            class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden"
-          >
-            <div
-              class="absolute -right-10 -bottom-10 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl"
-            ></div>
-            <div
-              class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4"
-            >
-              <div>
-                <div
-                  class="inline-flex items-center gap-2 bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full text-xs font-semibold mb-2"
-                >
-                  <i class="fa-solid fa-diagram-project"></i> Arquitectura de
-                  Inventario Actualizada
-                </div>
-                <h1
-                  class="text-2xl font-bold tracking-tight text-white flex items-center gap-2"
-                >
-                  Módulo de Inventario & Promociones
-                </h1>
-                <p class="text-slate-300 text-sm mt-1 max-w-2xl">
-                  Gestiona tus productos, organiza marcas y categorías, y
-                  configura **Combos y Obsequios** con reglas de selección por
-                  marca, categoría o productos individuales.
-                </p>
-              </div>
-              <div
-                class="flex items-center space-x-2 bg-slate-800/80 p-2 rounded-xl border border-slate-700/60"
-              >
-                <div class="text-center px-3 py-1 border-r border-slate-700">
-                  <span
-                    class="block text-xl font-bold text-amber-400"
-                    id="stat-obsequios-count"
-                    >2</span
-                  >
-                  <span class="text-[10px] text-slate-400 uppercase font-medium"
-                    >Obsequios Activos</span
-                  >
-                </div>
-                <div class="text-center px-3 py-1">
-                  <span
-                    class="block text-xl font-bold text-emerald-400"
-                    id="stat-products-count"
-                    >23</span
-                  >
-                  <span class="text-[10px] text-slate-400 uppercase font-medium"
-                    >Prods. en Promoción</span
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- VIEW 1: COMBOS Y OBSEQUIOS (DEFAULT DISPLAY) -->
-          <div id="view-obsequios" class="space-y-6">
-            <!-- TAB SELECTOR: COMBOS VS OBSEQUIOS -->
-            <div
-              class="flex border-b border-slate-200 space-x-2 bg-white p-1.5 rounded-xl shadow-sm border"
-            >
+        {/* PAGINACIÓN E INDICADORES DE PUNTOS */}
+        {filteredProducts.length > 0 && (
+          <div className="mt-4 flex items-center justify-center gap-2 bg-slate-900/90 border border-slate-800 px-5 py-2 rounded-full shadow-2xl">
+            {filteredProducts.map((_, idx) => (
               <button
-                onclick="switchSubTab('obsequios-tab')"
-                id="tab-btn-obsequios"
-                class="flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition-all flex items-center justify-center space-x-2 bg-slate-900 text-white shadow-sm"
-              >
-                <i class="fa-solid fa-gift text-amber-400"></i>
-                <span>Gestión de Obsequios</span>
-                <span
-                  class="bg-amber-400/20 text-amber-300 text-xs px-2 py-0.5 rounded-full ml-1"
-                  id="badge-obsequios-num"
-                  >2</span
-                >
-              </button>
-              <button
-                onclick="switchSubTab('combos-tab')"
-                id="tab-btn-combos"
-                class="flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition-all flex items-center justify-center space-x-2 text-slate-600 hover:bg-slate-100"
-              >
-                <i class="fa-solid fa-layer-group text-slate-400"></i>
-                <span>Gestión de Combos</span>
-                <span
-                  class="bg-slate-100 text-slate-500 text-xs px-2 py-0.5 rounded-full ml-1"
-                  >1</span
-                >
-              </button>
-            </div>
-
-            <!-- SUBTAB CONTENT: OBSEQUIOS -->
-            <div id="subtab-obsequios" class="space-y-6">
-              <!-- Action Bar -->
-              <div
-                class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm"
-              >
-                <div>
-                  <h2 class="text-lg font-bold text-slate-800">
-                    Reglas de Obsequios Configuradas
-                  </h2>
-                  <p class="text-xs text-slate-500">
-                    Crea promociones asociando productos de regalaría a marcas o
-                    categorías completas.
-                  </p>
-                </div>
-                <button
-                  onclick="openGiftModal()"
-                  class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold px-4 py-2.5 rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm"
-                >
-                  <i class="fa-solid fa-plus text-slate-900"></i> Crear Nuevo
-                  Obsequio
-                </button>
-              </div>
-
-              <!-- List of Active Obsequios -->
-              <div class="grid grid-cols-1 gap-4" id="obsequios-list">
-                <!-- JS Will Render Gift Cards Here -->
-              </div>
-            </div>
-
-            <!-- SUBTAB CONTENT: COMBOS (Placeholder Preview) -->
-            <div id="subtab-combos" class="hidden space-y-6">
-              <div
-                class="bg-white p-8 rounded-2xl border border-slate-200 text-center shadow-sm"
-              >
-                <div
-                  class="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"
-                >
-                  <i class="fa-solid fa-boxes-packing"></i>
-                </div>
-                <h3 class="text-lg font-bold text-slate-800">
-                  Módulo de Combos de Productos
-                </h3>
-                <p class="text-slate-500 text-sm max-w-md mx-auto mt-1 mb-4">
-                  Agrupa múltiples productos con un precio especial o paquete.
-                </p>
-                <button
-                  class="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-800"
-                >
-                  <i class="fa-solid fa-plus mr-1 text-amber-400"></i> Crear
-                  Primer Combo
-                </button>
-              </div>
-            </div>
+                key={idx}
+                onClick={() => setActiveIndex(idx)}
+                className={`transition-all duration-300 rounded-full ${
+                  idx === activeIndex ? "w-7 h-2.5" : "w-2.5 h-2.5 bg-slate-700 hover:bg-slate-500"
+                }`}
+                style={{
+                  backgroundColor: idx === activeIndex ? theme.hex : undefined
+                }}
+              />
+            ))}
           </div>
-
-          <!-- VIEW 2: PRODUCTOS (ORIGINAL TAB RESTRUCTURED) -->
-          <div id="view-productos" class="hidden space-y-6">
-            <div
-              class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4"
-            >
-              <div class="flex justify-between items-center">
-                <div>
-                  <h2 class="text-xl font-bold text-slate-800">
-                    Catálogo General de Productos
-                  </h2>
-                  <p class="text-xs text-slate-500">
-                    Mostrando 1–10 de 2,760 grupos de variantes
-                  </p>
-                </div>
-                <div class="flex gap-2">
-                  <button
-                    class="bg-amber-500 hover:bg-amber-600 text-slate-900 px-3 py-2 rounded-lg text-sm font-semibold"
-                  >
-                    + Nuevo Producto
-                  </button>
-                  <button
-                    class="bg-slate-900 text-white px-3 py-2 rounded-lg text-sm"
-                  >
-                    <i class="fa-solid fa-rotate mr-1 text-amber-400"></i>
-                    Sincronizar
-                  </button>
-                </div>
-              </div>
-
-              <!-- Filter Chips -->
-              <div class="flex flex-wrap gap-2 text-xs">
-                <span
-                  class="bg-slate-900 text-white px-3 py-1 rounded-full font-medium cursor-pointer"
-                  >Todos</span
-                >
-                <span
-                  class="bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-1 rounded-full cursor-pointer"
-                  >Activos</span
-                >
-                <span
-                  class="bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-1 rounded-full cursor-pointer"
-                  >Inactivos</span
-                >
-                <span
-                  class="bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-1 rounded-full cursor-pointer"
-                  >Sin imagen</span
-                >
-                <span
-                  class="bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-1 rounded-full cursor-pointer"
-                  >Sin categoría</span
-                >
-                <span
-                  class="bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-1 rounded-full cursor-pointer"
-                  >Nuevos (7 días)</span
-                >
-              </div>
-
-              <!-- Mini Table Preview -->
-              <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-slate-600">
-                  <thead
-                    class="bg-slate-50 text-slate-700 font-semibold uppercase tracking-wider border-y border-slate-200"
-                  >
-                    <tr>
-                      <th class="p-3">Nombre</th>
-                      <th class="p-3">Código</th>
-                      <th class="p-3">Precio Menor</th>
-                      <th class="p-3">Precio Mayor</th>
-                      <th class="p-3">Stock</th>
-                      <th class="p-3">Marca</th>
-                      <th class="p-3">Categoría</th>
-                      <th class="p-3">Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-slate-100">
-                    <tr class="hover:bg-slate-50">
-                      <td
-                        class="p-3 font-semibold text-slate-800 flex items-center space-x-2"
-                      >
-                        <div
-                          class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-400 border"
-                        >
-                          <i class="fa-regular fa-image"></i>
-                        </div>
-                        <span>ABANICO VIP PHONE</span>
-                      </td>
-                      <td class="p-3 font-mono">3076</td>
-                      <td class="p-3">3.00 REF</td>
-                      <td class="p-3">3.45 REF</td>
-                      <td class="p-3 font-bold">1949</td>
-                      <td class="p-3">VIP-PHONE</td>
-                      <td class="p-3">
-                        <span
-                          class="text-amber-600 bg-amber-50 px-2 py-0.5 rounded"
-                          >Sin Categoría</span
-                        >
-                      </td>
-                      <td class="p-3">
-                        <span
-                          class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-semibold"
-                          >Activo</span
-                        >
-                      </td>
-                    </tr>
-                    <tr class="hover:bg-slate-50">
-                      <td
-                        class="p-3 font-semibold text-slate-800 flex items-center space-x-2"
-                      >
-                        <div
-                          class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-400 border"
-                        >
-                          <i class="fa-regular fa-image"></i>
-                        </div>
-                        <span>ADAPTADOR 3 EN 1 TIPO C D0301</span>
-                      </td>
-                      <td class="p-3 font-mono">1775</td>
-                      <td class="p-3">6.00 REF</td>
-                      <td class="p-3">6.90 REF</td>
-                      <td class="p-3 font-bold">137</td>
-                      <td class="p-3">-</td>
-                      <td class="p-3">Cables y Adaptadores</td>
-                      <td class="p-3">
-                        <span
-                          class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-semibold"
-                          >Activo</span
-                        >
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- VIEW 3: OTHER TREE MODULES (CATEGORIAS, MARCAS, ETC) -->
-          <div id="view-generic" class="hidden space-y-6">
-            <div
-              class="bg-white p-12 rounded-2xl border border-slate-200 text-center"
-            >
-              <i
-                id="generic-icon"
-                class="fa-solid fa-folder-open text-4xl text-amber-500 mb-3"
-              ></i>
-              <h2 id="generic-title" class="text-xl font-bold text-slate-800">
-                Módulo de Inventario
-              </h2>
-              <p id="generic-desc" class="text-sm text-slate-500 mt-1">
-                Sección administrable dentro del menú principal de Inventario.
-              </p>
-            </div>
-          </div>
-        </div>
+        )}
       </main>
+
+      {/* BARRA DE CONTROL INFERIOR */}
+      <NotchControlBar
+        theme={theme}
+        setTheme={setTheme}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        autoRotate={autoRotate}
+        setAutoRotate={setAutoRotate}
+      />
+
+      {/* MODAL DE DETALLES DEL PRODUCTO */}
+      {selectedProduct && (
+        <ProductModal
+          product={selectedProduct}
+          theme={theme}
+          onAddToCart={() => addToCart(selectedProduct)}
+          onClose={() => setSelectedProduct(null)}
+        />
+      )}
+
+      {/* DRAWER DE COTIZACIÓN */}
+      {showCartDrawer && (
+        <CartDrawer
+          cart={cart}
+          theme={theme}
+          onRemove={removeFromCart}
+          onCheckout={handleWhatsAppCheckout}
+          onClose={() => setShowCartDrawer(false)}
+        />
+      )}
     </div>
+  );
+}
 
-    <!-- MODAL: CREAR / EDITAR OBSEQUIO (INTERACTIVE BUILDER) -->
-    <div
-      id="gift-modal"
-      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 hidden transition-all p-4"
-    >
-      <div
-        class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden border border-slate-200"
-      >
-        <!-- Modal Header -->
-        <div
-          class="bg-slate-900 text-white p-5 flex items-center justify-between border-b border-slate-800"
-        >
-          <div class="flex items-center space-x-3">
-            <div
-              class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg font-bold border border-amber-500/30"
-            >
-              <i class="fa-solid fa-gift"></i>
-            </div>
-            <div>
-              <h3 class="text-lg font-bold text-white" id="modal-title">
-                Configurar Regla de Obsequio
-              </h3>
-              <p class="text-xs text-slate-400">
-                Asigna un regalo dinámico filtrando por marcas, categorías o
-                productos específicos.
-              </p>
-            </div>
-          </div>
-          <button
-            onclick="closeGiftModal()"
-            class="text-slate-400 hover:text-white text-xl p-1"
-          >
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
+// --- COMPONENTE DE TARJETA CON RESPLANDOR SOBRIO Y ELEGANTE ---
+function ProductCard({ item, isActive, theme, onAddToCart }) {
+  const gradientBg = getGlowGradient(theme.id);
 
-        <!-- Modal Scrollable Content -->
-        <div class="p-6 overflow-y-auto space-y-6 flex-1 bg-slate-50/50">
-          <!-- PASO 1: DATOS DEL OBSEQUIO -->
+  if (isActive) {
+    return (
+      <div className="relative w-full h-full group transition-all duration-500">
+        
+        {/* CAPA 1: RESPLANDOR AMBIENTAL ATENUADO (Suave y sin deslumbrar) */}
+        <div 
+          className="absolute -inset-2 rounded-[28px] blur-xl opacity-40 group-hover:opacity-65 transition-all duration-500 pointer-events-none z-0"
+          style={{ background: gradientBg }}
+        />
+
+        {/* CAPA 2: MARCO DE LUZ LÍQUIDA ELEGANTE CON ANIMACIÓN LENTA */}
+        <div className="relative z-10 w-full h-full p-[1.5px] rounded-[22px] overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl">
+          
+          {/* Haz de Luz Perimetral Suave (Rotación en 10s) */}
           <div
-            class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4"
-          >
-            <div
-              class="flex items-center space-x-2 text-slate-800 font-bold text-sm border-b pb-2"
-            >
+            className="absolute -inset-[100%] animate-aceternity pointer-events-none opacity-80"
+            style={{ background: gradientBg }}
+          />
+
+          {/* Tarjeta de Contenido */}
+          <div className="relative z-10 w-full h-full rounded-[20px] bg-slate-950 overflow-hidden flex flex-col justify-between">
+            <div className="p-3 pb-2 bg-gradient-to-b from-slate-950/90 to-transparent z-10 flex justify-between items-center">
+              <span className="text-[10px] font-black tracking-wider text-slate-300 uppercase px-2 py-0.5 rounded bg-slate-900 border border-slate-800">
+                {item.tag}
+              </span>
               <span
-                class="w-6 h-6 rounded-full bg-amber-400 text-slate-900 text-xs flex items-center justify-center font-extrabold"
-                >1</span
+                className="text-[10px] font-extrabold px-2 py-0.5 rounded text-slate-950 shadow-sm"
+                style={{ backgroundColor: theme.hex }}
               >
-              <span>Información Básica del Obsequio</span>
+                {item.badge}
+              </span>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="relative flex-1 w-full overflow-hidden flex items-center justify-center p-2">
+              <img
+                src={item.image}
+                alt={item.title}
+                className="w-full h-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
+            </div>
+
+            <div className="p-4 pt-1 z-10 space-y-2 bg-slate-950/90 backdrop-blur-sm border-t border-slate-800/80">
               <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1"
-                  >Nombre de la Promoción / Regla</label
-                >
-                <input
-                  type="text"
-                  id="gift-rule-name"
-                  placeholder="Ej: Obsequio Samsung Especial"
-                  class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 focus:bg-white outline-none"
-                />
+                <h3 className="font-extrabold text-sm sm:text-base text-white tracking-tight line-clamp-1">
+                  {item.title}
+                </h3>
+                <p className="text-[11px] text-slate-400 line-clamp-1">{item.subtitle}</p>
               </div>
 
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1"
-                  >Producto de Regalo (El Obsequio)</label
-                >
-                <select
-                  id="gift-item-select"
-                  class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 focus:bg-white outline-none font-medium text-slate-800"
-                >
-                  <option value="JUEGO DE NINTENDO FC26 (Cod: 2377)">
-                    🎁 JUEGO DE NINTENDO FC26 (Cod: 2377)
-                  </option>
-                  <option value="AUDÍFONOS WIRELESS VIP (Cod: 8812)">
-                    🎁 AUDÍFONOS WIRELESS VIP (Cod: 8812)
-                  </option>
-                  <option value="CARGADOR RÁPIDO 20W (Cod: 1102)">
-                    🎁 CARGADOR RÁPIDO 20W (Cod: 1102)
-                  </option>
-                  <option value="PROTECTOR DE PANTALLA HD (Cod: 4040)">
-                    🎁 PROTECTOR DE PANTALLA HD (Cod: 4040)
-                  </option>
-                </select>
-              </div>
-            </div>
-          </div>
+              <div className="flex items-center justify-between pt-1 border-t border-slate-800/60">
+                <div>
+                  <span className="text-xs text-slate-500 line-through block">{item.oldPrice}</span>
+                  <span className="text-base sm:text-lg font-black" style={{ color: theme.hex }}>
+                    {item.price}
+                  </span>
+                </div>
 
-          <!-- PASO 2: FILTROS INTELIGENTES PARA CARGAR PRODUCTOS -->
-          <div
-            class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4"
-          >
-            <div class="flex items-center justify-between border-b pb-2">
-              <div
-                class="flex items-center space-x-2 text-slate-800 font-bold text-sm"
-              >
-                <span
-                  class="w-6 h-6 rounded-full bg-amber-400 text-slate-900 text-xs flex items-center justify-center font-extrabold"
-                  >2</span
-                >
-                <span>Selección Inteligente por Marca / Categoría</span>
-              </div>
-              <span
-                class="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded font-medium"
-                >Auto-carga de productos</span
-              >
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1"
-                  ><i class="fa-solid fa-copyright text-slate-400 mr-1"></i>
-                  Filtrar por Marca</label
-                >
-                <select
-                  id="filter-brand"
-                  class="w-full text-sm p-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none"
-                >
-                  <option value="">-- Todas las Marcas --</option>
-                  <option value="Samsung">Samsung</option>
-                  <option value="VIP-PHONE">VIP-PHONE</option>
-                  <option value="Apple">Apple</option>
-                  <option value="Xiaomi">Xiaomi</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1"
-                  ><i class="fa-solid fa-tags text-slate-400 mr-1"></i> Filtrar
-                  por Categoría</label
-                >
-                <select
-                  id="filter-category"
-                  class="w-full text-sm p-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none"
-                >
-                  <option value="">-- Todas las Categorías --</option>
-                  <option value="Celulares">Celulares & Smart</option>
-                  <option value="Cables y Adaptadores">
-                    Cables y Adaptadores
-                  </option>
-                  <option value="Audio y Cornetas">Audio y Cornetas</option>
-                  <option value="Accesorios">Accesorios Varios</option>
-                </select>
-              </div>
-
-              <button
-                onclick="loadProductsByFilter()"
-                class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center space-x-2 shadow"
-              >
-                <i class="fa-solid fa-filter text-amber-400"></i>
-                <span>Cargar a la Lista</span>
-              </button>
-            </div>
-
-            <!-- Manual Search Option -->
-            <div class="pt-2 border-t border-slate-100 flex items-center gap-2">
-              <span class="text-xs font-medium text-slate-500 whitespace-nowrap"
-                >O agrega individual:</span
-              >
-              <div class="relative flex-1">
-                <i
-                  class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"
-                ></i>
-                <input
-                  type="text"
-                  id="manual-add-input"
-                  placeholder="Escribe el nombre o código del producto..."
-                  class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-amber-400"
-                />
-              </div>
-              <button
-                onclick="addSingleProductManual()"
-                class="bg-amber-100 text-amber-800 hover:bg-amber-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
-              >
-                + Agregar
-              </button>
-            </div>
-          </div>
-
-          <!-- PASO 3: TABLA DE PRODUCTOS SELECCIONADOS (SACAR / AGREGAR LOGIC) -->
-          <div
-            class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3"
-          >
-            <div class="flex items-center justify-between">
-              <div
-                class="flex items-center space-x-2 text-slate-800 font-bold text-sm"
-              >
-                <span
-                  class="w-6 h-6 rounded-full bg-amber-400 text-slate-900 text-xs flex items-center justify-center font-extrabold"
-                  >3</span
-                >
-                <span>Lista de Productos Asignados al Obsequio</span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <span
-                  class="text-xs bg-slate-100 text-slate-700 font-semibold px-2.5 py-1 rounded-full border"
-                  id="assigned-count-badge"
-                >
-                  0 productos seleccionados
-                </span>
                 <button
-                  onclick="clearAllAssigned()"
-                  class="text-xs text-rose-600 hover:underline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddToCart();
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-950 flex items-center gap-1 transition hover:brightness-110 active:scale-95 shadow-md"
+                  style={{ backgroundColor: theme.hex }}
                 >
-                  Vaciar lista
+                  + Añadir
                 </button>
               </div>
             </div>
-
-            <p class="text-xs text-slate-500">
-              Todos los productos listados abajo **recibirán automáticamente el
-              regalo**. Puedes sacar cualquier producto de la lista haciendo
-              clic en <span class="text-rose-600 font-bold">"Sacar"</span>.
-            </p>
-
-            <!-- Table of Assigned Items -->
-            <div
-              class="border rounded-xl overflow-hidden max-h-60 overflow-y-auto"
-            >
-              <table class="w-full text-left text-xs text-slate-600">
-                <thead
-                  class="bg-slate-100 text-slate-700 font-semibold sticky top-0 border-b"
-                >
-                  <tr>
-                    <th class="p-2.5">Código</th>
-                    <th class="p-2.5">Producto</th>
-                    <th class="p-2.5">Marca</th>
-                    <th class="p-2.5">Categoría</th>
-                    <th class="p-2.5 text-center">Stock</th>
-                    <th class="p-2.5 text-right">Acción</th>
-                  </tr>
-                </thead>
-                <tbody
-                  id="assigned-products-tbody"
-                  class="divide-y divide-slate-100"
-                >
-                  <!-- JS will dynamically populate rows here -->
-                </tbody>
-              </table>
-            </div>
           </div>
         </div>
 
-        <!-- Modal Footer -->
-        <div
-          class="bg-slate-100 p-4 border-t border-slate-200 flex items-center justify-between"
+      </div>
+    );
+  }
+
+  // Tarjeta inactiva o secundaria
+  return (
+    <div className="relative w-full h-full group transition-all duration-300 opacity-80 hover:opacity-100">
+      <div 
+        className="absolute -inset-1 rounded-[24px] blur-md opacity-0 group-hover:opacity-50 transition-all duration-500 pointer-events-none z-0"
+        style={{ background: gradientBg }}
+      />
+      <div className="relative z-10 w-full h-full rounded-2xl bg-slate-950 border border-slate-800/80 hover:border-slate-700 overflow-hidden flex flex-col justify-between shadow-xl">
+        <div className="p-3 pb-2 bg-gradient-to-b from-slate-950/90 to-transparent z-10 flex justify-between items-center">
+          <span className="text-[10px] font-black tracking-wider text-slate-400 uppercase px-2 py-0.5 rounded bg-slate-900 border border-slate-800">
+            {item.tag}
+          </span>
+          <span
+            className="text-[10px] font-extrabold px-2 py-0.5 rounded text-slate-950 shadow-sm"
+            style={{ backgroundColor: theme.hex }}
+          >
+            {item.badge}
+          </span>
+        </div>
+
+        <div className="relative flex-1 w-full overflow-hidden flex items-center justify-center p-2">
+          <img
+            src={item.image}
+            alt={item.title}
+            className="w-full h-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
+        </div>
+
+        <div className="p-4 pt-1 z-10 space-y-2 bg-slate-950/90 backdrop-blur-sm border-t border-slate-800/80">
+          <div>
+            <h3 className="font-extrabold text-sm sm:text-base text-white tracking-tight line-clamp-1">
+              {item.title}
+            </h3>
+            <p className="text-[11px] text-slate-400 line-clamp-1">{item.subtitle}</p>
+          </div>
+
+          <div className="flex items-center justify-between pt-1 border-t border-slate-800/60">
+            <div>
+              <span className="text-xs text-slate-500 line-through block">{item.oldPrice}</span>
+              <span className="text-base sm:text-lg font-black" style={{ color: theme.hex }}>
+                {item.price}
+              </span>
+            </div>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddToCart();
+              }}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-950 flex items-center gap-1 transition hover:brightness-110 active:scale-95"
+              style={{ backgroundColor: theme.hex }}
+            >
+              + Añadir
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- BARRA DE CONTROLES FLOTANTES ---
+function NotchControlBar({ theme, setTheme, viewMode, setViewMode, autoRotate, setAutoRotate }) {
+  return (
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900/90 border border-slate-700/80 rounded-full px-5 py-2.5 shadow-2xl backdrop-blur-lg flex items-center gap-4 text-xs">
+      {/* Selector de Temas */}
+      <div className="flex items-center gap-1.5 pr-3 border-r border-slate-800">
+        {COLOR_THEMES.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTheme(t)}
+            className={`w-5 h-5 rounded-full transition-all ${
+              theme.id === t.id ? "scale-125 ring-2 ring-white" : "opacity-60 hover:opacity-100"
+            }`}
+            style={{ backgroundColor: t.hex }}
+            title={t.label}
+          />
+        ))}
+      </div>
+
+      {/* Switcher de Modos de Vista */}
+      <div className="flex items-center gap-1 pr-3 border-r border-slate-800">
+        <button
+          onClick={() => setViewMode("coverflow")}
+          className={`p-1.5 rounded-lg transition ${
+            viewMode === "coverflow" ? "bg-slate-800 text-white font-bold" : "text-slate-400 hover:text-white"
+          }`}
+          title="Modo Coverflow 3D"
         >
-          <button
-            onclick="closeGiftModal()"
-            class="px-4 py-2 text-slate-600 hover:text-slate-800 text-sm font-medium"
+          <LayersIcon />
+        </button>
+        <button
+          onClick={() => setViewMode("stacked")}
+          className={`p-1.5 rounded-lg transition ${
+            viewMode === "stacked" ? "bg-slate-800 text-white font-bold" : "text-slate-400 hover:text-white"
+          }`}
+          title="Modo Apilado"
+        >
+          <SparklesIcon />
+        </button>
+        <button
+          onClick={() => setViewMode("grid")}
+          className={`p-1.5 rounded-lg transition ${
+            viewMode === "grid" ? "bg-slate-800 text-white font-bold" : "text-slate-400 hover:text-white"
+          }`}
+          title="Modo Rejilla"
+        >
+          <GridIcon />
+        </button>
+      </div>
+
+      {/* Botón de Autorrotación */}
+      <button
+        onClick={() => setAutoRotate(!autoRotate)}
+        className={`px-3 py-1 rounded-full font-semibold transition text-[11px] flex items-center gap-1.5 ${
+          autoRotate ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" : "bg-slate-800 text-slate-400"
+        }`}
+      >
+        <span className={`w-2 h-2 rounded-full ${autoRotate ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
+        {autoRotate ? "Auto On" : "Pausado"}
+      </button>
+    </div>
+  );
+}
+
+// --- MODAL DE DETALLES DEL PRODUCTO ---
+function ProductModal({ product, theme, onAddToCart, onClose }) {
+  const handleWhatsAppOrder = () => {
+    const text = encodeURIComponent(`Hola VIP Phone & Tech Studio, me interesa adquirir el producto: ${product.title} (${product.price}). ¿Tienen disponibilidad inmediata?`);
+    window.open(`https://wa.me/?text=${text}`, "_blank");
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+      <div className="relative w-full max-w-lg bg-slate-900 border-2 border-slate-700 rounded-3xl p-6 shadow-2xl space-y-5">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center border border-slate-700 transition hover:bg-slate-700"
+        >
+          ✕
+        </button>
+
+        <div className="space-y-1 pr-6">
+          <span
+            className="text-[10px] font-black uppercase px-2.5 py-1 rounded text-slate-950"
+            style={{ backgroundColor: theme.hex }}
           >
-            Cancelar
-          </button>
+            {product.badge}
+          </span>
+          <h2 className="text-xl font-extrabold text-white mt-2">{product.title}</h2>
+          <p className="text-xs text-slate-400">{product.subtitle}</p>
+        </div>
+
+        <div className="w-full h-44 rounded-2xl overflow-hidden relative border border-slate-800">
+          <img src={product.image} alt={product.title} className="w-full h-full object-cover" />
+        </div>
+
+        <div className="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-800">
+          <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+            Especificaciones Destacadas:
+          </h4>
+          <ul className="text-xs text-slate-300 space-y-1.5">
+            {product.features.map((feat, idx) => (
+              <li key={idx} className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: theme.hex }} />
+                {feat}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="flex items-center justify-between pt-2 gap-2">
+          <div>
+            <span className="text-xs text-slate-500 line-through block">{product.oldPrice}</span>
+            <span className="text-2xl font-black text-white">{product.price}</span>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={onAddToCart}
+              className="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-white border border-slate-700 hover:bg-slate-700 transition"
+            >
+              + Agregar
+            </button>
+            <button
+              onClick={handleWhatsAppOrder}
+              className="px-4 py-2.5 rounded-xl text-xs font-extrabold text-slate-950 shadow-lg flex items-center gap-1.5 hover:brightness-110 active:scale-95 transition"
+              style={{ backgroundColor: theme.hex }}
+            >
+              <WhatsappIcon /> Cotizar en WhatsApp
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- DRAWER / RESUMEN DE COTIZACIÓN EN CARRITO ---
+function CartDrawer({ cart, theme, onRemove, onCheckout, onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm">
+      <div className="w-full max-w-md bg-slate-900 border-l border-slate-800 h-full p-6 flex flex-col justify-between shadow-2xl relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-slate-400 hover:text-white text-lg font-bold"
+        >
+          ✕
+        </button>
+
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <ShoppingBagIcon />
+            <h3 className="text-lg font-extrabold text-white">Tu Lista de Cotización</h3>
+          </div>
+          <p className="text-xs text-slate-400">
+            Agrega los equipos que deseas cotizar y envíalos en un mensaje listo por WhatsApp.
+          </p>
+
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+            {cart.length === 0 ? (
+              <p className="text-xs text-slate-500 py-8 text-center">Aún no has agregado productos a la lista.</p>
+            ) : (
+              cart.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between gap-3"
+                >
+                  <img src={item.image} alt={item.title} className="w-12 h-12 rounded-lg object-cover" />
+                  <div className="flex-1">
+                    <h4 className="text-xs font-bold text-white line-clamp-1">{item.title}</h4>
+                    <span className="text-xs font-black" style={{ color: theme.hex }}>
+                      {item.price}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => onRemove(item.id)}
+                    className="text-slate-500 hover:text-red-400 text-xs px-2 py-1"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="border-t border-slate-800 pt-4 space-y-3">
+          <div className="flex justify-between text-xs text-slate-300 font-bold">
+            <span>Total de Artículos:</span>
+            <span>{cart.length} productos</span>
+          </div>
+
           <button
-            onclick="saveGiftRule()"
-            class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition-all flex items-center space-x-2 text-sm"
+            disabled={cart.length === 0}
+            onClick={onCheckout}
+            className="w-full py-3 rounded-xl text-xs font-extrabold text-slate-950 shadow-lg flex items-center justify-center gap-2 hover:brightness-110 disabled:opacity-50 transition"
+            style={{ backgroundColor: theme.hex }}
           >
-            <i class="fa-solid fa-check"></i>
-            <span>Guardar Regla de Obsequio</span>
+            <WhatsappIcon /> Enviar Cotización por WhatsApp
           </button>
         </div>
       </div>
     </div>
-
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
-      // MASTER DATABASE OF PRODUCTS (SIMULATED REAL DATA)
-      const CATALOG_DATABASE = [
-          { id: 1, code: '2377', name: 'JUEGO DE NINTENDO FC26', brand: 'Samsung', category: 'Celulares', stock: 45, isGiftable: true },
-          { id: 2, code: '3076', name: 'ABANICO VIP PHONE', brand: 'VIP-PHONE', category: 'Accesorios', stock: 1949, isGiftable: false },
-          { id: 3, code: '1775', name: 'ADAPTADOR 3 EN 1 TIPO C D0301', brand: 'VIP-PHONE', category: 'Cables y Adaptadores', stock: 137, isGiftable: false },
-          { id: 4, code: '1773', name: 'ADAPTADOR 8 EN 1 TIPO C D0801', brand: 'VIP-PHONE', category: 'Cables y Adaptadores', stock: 12, isGiftable: false },
-          { id: 5, code: '5010', name: 'SAMSUNG GALAXY S23 ULTRA 256GB', brand: 'Samsung', category: 'Celulares', stock: 18, isGiftable: false },
-          { id: 6, code: '5011', name: 'SAMSUNG GALAXY A54 5G 128GB', brand: 'Samsung', category: 'Celulares', stock: 42, isGiftable: false },
-          { id: 7, code: '5012', name: 'SAMSUNG GALAXY Z FOLD 5', brand: 'Samsung', category: 'Celulares', stock: 8, isGiftable: false },
-          { id: 8, code: '8812', name: 'AUDÍFONOS WIRELESS VIP', brand: 'VIP-PHONE', category: 'Audio y Cornetas', stock: 300, isGiftable: true },
-          { id: 9, code: '9001', name: 'IPHONE 15 PRO MAX 256GB', brand: 'Apple', category: 'Celulares', stock: 15, isGiftable: false },
-          { id: 10, code: '9002', name: 'IPAD AIR M2 11 PULGADAS', brand: 'Apple', category: 'Accesorios', stock: 9, isGiftable: false },
-          { id: 11, code: '7001', name: 'XIAOMI REDMI NOTE 13 PRO', brand: 'Xiaomi', category: 'Celulares', stock: 65, isGiftable: false },
-          { id: 12, code: '7002', name: 'CORNETA BLUETOOTH VIP BASS', brand: 'VIP-PHONE', category: 'Audio y Cornetas', stock: 88, isGiftable: false }
-      ];
-
-      // GIFT RULES STATE
-      let activeObsequioRules = [
-          {
-              id: 101,
-              name: 'Obsequio Samsung Gamer',
-              giftItem: 'JUEGO DE NINTENDO FC26 (Cod: 2377)',
-              active: true,
-              assignedProducts: [
-                  { code: '5010', name: 'SAMSUNG GALAXY S23 ULTRA 256GB', brand: 'Samsung', category: 'Celulares', stock: 18 },
-                  { code: '5011', name: 'SAMSUNG GALAXY A54 5G 128GB', brand: 'Samsung', category: 'Celulares', stock: 42 },
-                  { code: '5012', name: 'SAMSUNG GALAXY Z FOLD 5', brand: 'Samsung', category: 'Celulares', stock: 8 }
-              ]
-          },
-          {
-              id: 102,
-              name: 'Promo Audio VIP',
-              giftItem: 'AUDÍFONOS WIRELESS VIP (Cod: 8812)',
-              active: true,
-              assignedProducts: [
-                  { code: '3076', name: 'ABANICO VIP PHONE', brand: 'VIP-PHONE', category: 'Accesorios', stock: 1949 },
-                  { code: '12', code: '7002', name: 'CORNETA BLUETOOTH VIP BASS', brand: 'VIP-PHONE', category: 'Audio y Cornetas', stock: 88 }
-              ]
-          }
-      ];
-
-      // Currently editing/building gift rule state in modal
-      let currentEditingRuleId = null;
-      let tempAssignedProducts = [];
-
-      // INITIAL LOAD
-      window.onload = function() {
-          renderObsequiosList();
-      };
-
-      // NAVIGATION SWITCHING
-      function switchTab(tabKey) {
-          // Hide all views
-          document.getElementById('view-obsequios').classList.add('hidden');
-          document.getElementById('view-productos').classList.add('hidden');
-          document.getElementById('view-generic').classList.add('hidden');
-
-          // Reset navigation active styles
-          const navs = ['productos', 'categorias', 'marcas', 'obsequios', 'especificaciones', 'cargamasiva'];
-          navs.forEach(nav => {
-              const el = document.getElementById(`nav-${nav}`);
-              if(el) {
-                  el.classList.remove('bg-amber-500/10', 'text-amber-300', 'font-medium');
-              }
-          });
-
-          // Activate chosen
-          const activeNav = document.getElementById(`nav-${tabKey}`);
-          if(activeNav) activeNav.classList.add('bg-amber-500/10', 'text-amber-300', 'font-medium');
-
-          // Update Breadcrumb & View
-          const breadcrumb = document.getElementById('current-breadcrumb');
-
-          if(tabKey === 'obsequios') {
-              document.getElementById('view-obsequios').classList.remove('hidden');
-              breadcrumb.textContent = 'Combos y Obsequios';
-          } else if(tabKey === 'productos') {
-              document.getElementById('view-productos').classList.remove('hidden');
-              breadcrumb.textContent = 'Productos';
-          } else {
-              document.getElementById('view-generic').classList.remove('hidden');
-              document.getElementById('generic-title').textContent = `Módulo de ${tabKey.charAt(0).toUpperCase() + tabKey.slice(1)}`;
-              breadcrumb.textContent = tabKey.charAt(0).toUpperCase() + tabKey.slice(1);
-          }
-      }
-
-      // SUBTAB COMBOS VS OBSEQUIOS
-      function switchSubTab(subtab) {
-          const btnObsequios = document.getElementById('tab-btn-obsequios');
-          const btnCombos = document.getElementById('tab-btn-combos');
-          const contentObsequios = document.getElementById('subtab-obsequios');
-          const contentCombos = document.getElementById('subtab-combos');
-
-          if(subtab === 'obsequios-tab') {
-              btnObsequios.className = "flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition-all flex items-center justify-center space-x-2 bg-slate-900 text-white shadow-sm";
-              btnCombos.className = "flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition-all flex items-center justify-center space-x-2 text-slate-600 hover:bg-slate-100";
-              contentObsequios.classList.remove('hidden');
-              contentCombos.classList.add('hidden');
-          } else {
-              btnCombos.className = "flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition-all flex items-center justify-center space-x-2 bg-slate-900 text-white shadow-sm";
-              btnObsequios.className = "flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition-all flex items-center justify-center space-x-2 text-slate-600 hover:bg-slate-100";
-              contentCombos.classList.remove('hidden');
-              contentObsequios.classList.add('hidden');
-          }
-      }
-
-      // RENDER OBSEQUIOS LIST
-      function renderObsequiosList() {
-          const container = document.getElementById('obsequios-list');
-          container.innerHTML = '';
-
-          let totalProductsAssignedCount = 0;
-
-          activeObsequioRules.forEach(rule => {
-              totalProductsAssignedCount += rule.assignedProducts.length;
-
-              const card = document.createElement('div');
-              card.className = "bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4 hover:border-amber-400 transition-all";
-
-              card.innerHTML = `
-                  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-4 border-slate-100">
-                      <div class="flex items-center space-x-3">
-                          <div class="w-10 h-10 rounded-xl ${rule.active ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'} flex items-center justify-center text-lg font-bold">
-                              <i class="fa-solid fa-gift"></i>
-                          </div>
-                          <div>
-                              <div class="flex items-center space-x-2">
-                                  <h3 class="font-bold text-slate-800 text-base">${rule.name}</h3>
-                                  <span class="${rule.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'} text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                      ${rule.active ? '🟢 Activa' : '⚪ Inactiva'}
-                                  </span>
-                              </div>
-                              <p class="text-xs text-slate-500 mt-0.5">
-                                  Obsequio entregado: <strong class="text-slate-700">${rule.giftItem}</strong>
-                              </p>
-                          </div>
-                      </div>
-
-                      <div class="flex items-center space-x-2">
-                          <button onclick="toggleRuleStatus(${rule.id})" class="text-xs px-3 py-1.5 rounded-lg font-medium border border-slate-200 hover:bg-slate-50 transition-colors">
-                              ${rule.active ? '<i class="fa-solid fa-pause mr-1"></i> Pausar' : '<i class="fa-solid fa-play mr-1"></i> Activar'}
-                          </button>
-                          <button onclick="editGiftRule(${rule.id})" class="text-xs bg-slate-900 text-white hover:bg-slate-800 px-3 py-1.5 rounded-lg font-medium transition-colors">
-                              <i class="fa-solid fa-pen-to-square mr-1 text-amber-400"></i> Editar Lista
-                          </button>
-                          <button onclick="deleteGiftRule(${rule.id})" class="text-xs text-rose-600 hover:bg-rose-50 p-1.5 rounded-lg transition-colors">
-                              <i class="fa-solid fa-trash"></i>
-                          </button>
-                      </div>
-                  </div>
-
-                  <!-- Applicable Products Summary -->
-                  <div>
-                      <div class="flex items-center justify-between text-xs text-slate-500 mb-2 font-semibold">
-                          <span>Aplica a (${rule.assignedProducts.length} productos):</span>
-                          <span class="text-amber-600">Sincronizado con inventario</span>
-                      </div>
-                      <div class="flex flex-wrap gap-2">
-                          ${rule.assignedProducts.slice(0, 4).map(p => `
-                              <span class="bg-slate-50 border border-slate-200 text-slate-700 text-xs px-2.5 py-1 rounded-lg flex items-center space-x-1">
-                                  <i class="fa-solid fa-box text-[10px] text-slate-400"></i>
-                                  <span class="font-medium">${p.name}</span>
-                                  <span class="text-[10px] text-slate-400">(${p.brand})</span>
-                              </span>
-                          `).join('')}
-                          ${rule.assignedProducts.length > 4 ? `
-                              <span class="bg-amber-50 text-amber-700 text-xs px-2.5 py-1 rounded-lg font-bold border border-amber-200">
-                                  +${rule.assignedProducts.length - 4} más...
-                              </span>
-                          ` : ''}
-                      </div>
-                  </div>
-              `;
-
-              container.appendChild(card);
-          });
-
-          // Update Header Stats
-          document.getElementById('stat-obsequios-count').textContent = activeObsequioRules.filter(r => r.active).length;
-          document.getElementById('stat-products-count').textContent = totalProductsAssignedCount;
-          document.getElementById('badge-obsequios-num').textContent = activeObsequioRules.length;
-      }
-
-      // OPEN MODAL FOR NEW GIFT
-      function openGiftModal() {
-          currentEditingRuleId = null;
-          tempAssignedProducts = [];
-          document.getElementById('gift-rule-name').value = '';
-          document.getElementById('modal-title').textContent = "Crear Nueva Regla de Obsequio";
-          renderAssignedProductsTable();
-          document.getElementById('gift-modal').classList.remove('hidden');
-      }
-
-      // CLOSE MODAL
-      function closeGiftModal() {
-          document.getElementById('gift-modal').classList.add('hidden');
-      }
-
-      // EDIT EXISTING RULE
-      function editGiftRule(ruleId) {
-          const rule = activeObsequioRules.find(r => r.id === ruleId);
-          if(!rule) return;
-
-          currentEditingRuleId = rule.id;
-          document.getElementById('gift-rule-name').value = rule.name;
-          document.getElementById('gift-item-select').value = rule.giftItem;
-          tempAssignedProducts = [...rule.assignedProducts];
-          document.getElementById('modal-title').textContent = "Editar Regla de Obsequio";
-
-          renderAssignedProductsTable();
-          document.getElementById('gift-modal').classList.remove('hidden');
-      }
-
-      // FILTER & LOAD PRODUCTS TO LIST
-      function loadProductsByFilter() {
-          const brandVal = document.getElementById('filter-brand').value;
-          const catVal = document.getElementById('filter-category').value;
-
-          if(!brandVal && !catVal) {
-              alert("Por favor selecciona una Marca o una Categoría para cargar los productos.");
-              return;
-          }
-
-          // Filter from Database
-          const filtered = CATALOG_DATABASE.filter(p => {
-              const matchBrand = brandVal ? p.brand === brandVal : true;
-              const matchCat = catVal ? p.category === catVal : true;
-              return matchBrand && matchCat && !p.isGiftable;
-          });
-
-          if(filtered.length === 0) {
-              alert("No se encontraron productos coincidentes con ese filtro.");
-              return;
-          }
-
-          // Merge avoiding duplicates
-          let addedCount = 0;
-          filtered.forEach(prod => {
-              if(!tempAssignedProducts.some(ap => ap.code === prod.code)) {
-                  tempAssignedProducts.push({
-                      code: prod.code,
-                      name: prod.name,
-                      brand: prod.brand,
-                      category: prod.category,
-                      stock: prod.stock
-                  });
-                  addedCount++;
-              }
-          });
-
-          renderAssignedProductsTable();
-      }
-
-      // ADD SINGLE PRODUCT MANUAL
-      function addSingleProductManual() {
-          const query = document.getElementById('manual-add-input').value.trim().toLowerCase();
-          if(!query) return;
-
-          const match = CATALOG_DATABASE.find(p =>
-              p.code.toLowerCase().includes(query) || p.name.toLowerCase().includes(query)
-          );
-
-          if(!match) {
-              alert("No se encontró ningún producto con ese nombre o código.");
-              return;
-          }
-
-          if(tempAssignedProducts.some(ap => ap.code === match.code)) {
-              alert("Este producto ya está en la lista asignada.");
-              return;
-          }
-
-          tempAssignedProducts.push({
-              code: match.code,
-              name: match.name,
-              brand: match.brand,
-              category: match.category,
-              stock: match.stock
-          });
-
-          document.getElementById('manual-add-input').value = '';
-          renderAssignedProductsTable();
-      }
-
-      // REMOVE PRODUCT FROM ASSIGNED LIST ("SACAR")
-      function removeAssignedProduct(code) {
-          tempAssignedProducts = tempAssignedProducts.filter(p => p.code !== code);
-          renderAssignedProductsTable();
-      }
-
-      function clearAllAssigned() {
-          tempAssignedProducts = [];
-          renderAssignedProductsTable();
-      }
-
-      // RENDER ASSIGNED PRODUCTS TABLE IN MODAL
-      function renderAssignedProductsTable() {
-          const tbody = document.getElementById('assigned-products-tbody');
-          const badge = document.getElementById('assigned-count-badge');
-
-          badge.textContent = `${tempAssignedProducts.length} productos seleccionados`;
-          tbody.innerHTML = '';
-
-          if(tempAssignedProducts.length === 0) {
-              tbody.innerHTML = `
-                  <tr>
-                      <td colspan="6" class="text-center p-6 text-slate-400 bg-slate-50">
-                          <i class="fa-solid fa-box-open text-2xl mb-1 block text-slate-300"></i>
-                          No hay productos en la lista. Usa el filtro de arriba para cargar productos por marca o categoría.
-                      </td>
-                  </tr>
-              `;
-              return;
-          }
-
-          tempAssignedProducts.forEach(p => {
-              const tr = document.createElement('tr');
-              tr.className = "hover:bg-slate-50 transition-colors";
-              tr.innerHTML = `
-                  <td class="p-2.5 font-mono font-bold text-slate-700">${p.code}</td>
-                  <td class="p-2.5 font-semibold text-slate-800">${p.name}</td>
-                  <td class="p-2.5"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-medium">${p.brand}</span></td>
-                  <td class="p-2.5">${p.category}</td>
-                  <td class="p-2.5 text-center font-bold text-slate-700">${p.stock}</td>
-                  <td class="p-2.5 text-right">
-                      <button onclick="removeAssignedProduct('${p.code}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-2.5 py-1 rounded-lg text-[11px] transition-colors inline-flex items-center space-x-1">
-                          <i class="fa-solid fa-trash-can"></i>
-                          <span>Sacar</span>
-                      </button>
-                  </td>
-              `;
-              tbody.appendChild(tr);
-          });
-      }
-
-      // SAVE RULE TO STATE
-      function saveGiftRule() {
-          const name = document.getElementById('gift-rule-name').value.trim();
-          const giftItem = document.getElementById('gift-item-select').value;
-
-          if(!name) {
-              alert("Por favor escribe un nombre para la regla de obsequio.");
-              return;
-          }
-
-          if(tempAssignedProducts.length === 0) {
-              alert("Debes tener al menos 1 producto asignado en la lista para esta promoción.");
-              return;
-          }
-
-          if(currentEditingRuleId) {
-              // Update existing
-              const rule = activeObsequioRules.find(r => r.id === currentEditingRuleId);
-              if(rule) {
-                  rule.name = name;
-                  rule.giftItem = giftItem;
-                  rule.assignedProducts = [...tempAssignedProducts];
-              }
-          } else {
-              // Create new
-              activeObsequioRules.push({
-                  id: Date.now(),
-                  name: name,
-                  giftItem: giftItem,
-                  active: true,
-                  assignedProducts: [...tempAssignedProducts]
-              });
-          }
-
-          renderObsequiosList();
-          closeGiftModal();
-      }
-
-      // TOGGLE ACTIVE STATUS
-      function toggleRuleStatus(id) {
-          const rule = activeObsequioRules.find(r => r.id === id);
-          if(rule) {
-              rule.active = !rule.active;
-              renderObsequiosList();
-          }
-      }
-
-      // DELETE RULE
-      function deleteGiftRule(id) {
-          activeObsequioRules = activeObsequioRules.filter(r => r.id !== id);
-          renderObsequiosList();
-      }
-    </script>
-  </body>
-</html>
+  );
+}
